@@ -253,7 +253,7 @@ void SyncOCDialog::on_listOpenCore_currentRowChanged(int currentRow) {
   QString strShowFileName;
   strShowFileName = fiSource.fileName();
   ui->lblShowInfo->setText(strShowFileName + "\n" + tr("Current File: ") +
-                           "md5    " + targetHash + "  " +
+                           "md5    " + targetHash + "    " +
                            tr("Available File: ") + "md5    " + sourceHash);
 
   if (sourceHash != targetHash) {
@@ -278,6 +278,35 @@ void SyncOCDialog::closeEvent(QCloseEvent* event) {
   else
     ocFromDev = "";
   if (blDEV) mw_one->dlgSyncOC->ui->lblOCFrom->setText(ocFromDev);
+
+  saveWindowsPos();
+}
+
+void SyncOCDialog::saveWindowsPos() {
+  Reg.setValue("sync-x", this->x());
+  Reg.setValue("sync-y", this->y());
+  Reg.setValue("sync-width", this->width());
+  Reg.setValue("sync-height", this->height());
+}
+
+void SyncOCDialog::resizeWindowsPos() {
+  // Resize Sync Windows
+  int x, y, w, h;
+  x = Reg.value("sync-x", "0").toInt();
+  y = Reg.value("sync-y", "0").toInt();
+  w = Reg.value("sync-width", "900").toInt();
+  h = Reg.value("sync-height", "500").toInt();
+  if (x < 0) {
+    w = w + x;
+    x = 0;
+  }
+  if (y < 0) {
+    h = h + y;
+    y = 0;
+  }
+  QRect rect(x, y, w, h);
+  move(rect.topLeft());
+  resize(rect.size());
 }
 
 void SyncOCDialog::writeCheckStateINI() {
@@ -349,11 +378,7 @@ void SyncOCDialog::on_btnCheckUpdate_clicked() {
                           ui->btnCheckUpdate->height());
 
   if (ui->chkKextsDev->isChecked()) {
-    QString url =
-        "https://raw.githubusercontent.com/dortania/build-repo/builds/"
-        "config.json";
-
-    getKextHtmlInfo(url, false);
+    getKextHtmlInfo(getJsonUrl(), false);
   }
 
   if (mymethod->blBreak) return;
@@ -409,6 +434,20 @@ void SyncOCDialog::on_btnCheckUpdate_clicked() {
   ui->btnCheckUpdate->setEnabled(true);
 }
 
+QString SyncOCDialog::getJsonUrl() {
+  QString strMirror =
+      mw_one->myDlgPreference->ui->comboBoxNet->currentText().trimmed();
+  if (strMirror == "https://download.fastgit.org/" ||
+      strMirror == "https://archive.fastgit.org/")
+    strMirror = "https://gh.flyinbug.top/gh/https://github.com/";
+  strMirror.replace("https://github.com/", "");
+  QString url = strMirror +
+                "https://raw.githubusercontent.com/dortania/build-repo/builds/"
+                "config.json";
+  qDebug() << "json url=" << url;
+  return url;
+}
+
 void SyncOCDialog::on_btnStop_clicked() {
   if (ui->chkKextsDev->isChecked()) {
     if (!dlEnd) {
@@ -423,6 +462,7 @@ void SyncOCDialog::on_btnStop_clicked() {
   if (isCheckOC) {
     isCheckOC = false;
     ui->btnGetOC->setEnabled(true);
+    ui->btnGetLastOC->setEnabled(true);
     delete progBar;
   }
 }
@@ -480,6 +520,8 @@ void SyncOCDialog::readCheckStateINI() {
 
 void SyncOCDialog::init_Sync_OC_Table() {
   if (blDEV) {
+    ui->btnGetLastOC->hide();
+    ui->btnGetOC->setText(tr("Get OpenCore"));
     ui->lblOCVersions->setHidden(true);
     ui->comboOCVersions->setHidden(true);
     ui->comboOCVersions->setCurrentIndex(0);
@@ -488,6 +530,7 @@ void SyncOCDialog::init_Sync_OC_Table() {
     ui->editOCDevSource->setHidden(false);
     ui->btnImport->setHidden(false);
   } else {
+    ui->btnGetLastOC->show();
     ui->lblOCVersions->setHidden(false);
     ui->comboOCVersions->setHidden(false);
     ui->comboOCVersions->setCurrentText("");
@@ -761,7 +804,7 @@ void SyncOCDialog::on_tableKexts_itemSelectionChanged() {
       mw_one->getMD5(mymethod->getKextBin(targetKexts.at(row)));
 
   ui->lblShowInfo->setText(strShowFileName + "\n" + tr("Current File: ") +
-                           strTV + "  md5    " + targetHash + "  " +
+                           strTV + "  md5    " + targetHash + "    " +
                            tr("Available File: ") + strSV + "  md5    " +
                            sourceHash);
 }
@@ -821,10 +864,17 @@ void SyncOCDialog::on_btnGetOC_clicked() {
                         ui->btnGetOC->width(), ui->btnGetOC->height());
 
   if (blDEV) {
-    if (mw_one->myDlgPreference->ui->rbtnAPI->isChecked())
-      mymethod->getLastReleaseFromUrl(DevSource);
-    if (mw_one->myDlgPreference->ui->rbtnWeb->isChecked())
-      mymethod->getLastReleaseFromHtml(DevSource + "/releases");
+    if (DevSource == "https://github.com/dortania/build-repo") {
+      getKextHtmlInfo(getJsonUrl(), false);
+      QString url = getKextDevDL(bufferJson, "OpenCorePkg");
+      mymethod->startDownload(url);
+    } else {
+      if (mw_one->myDlgPreference->ui->rbtnAPI->isChecked())
+        mymethod->getLastReleaseFromUrl(DevSource);
+      if (mw_one->myDlgPreference->ui->rbtnWeb->isChecked())
+        mymethod->getLastReleaseFromHtml(DevSource + "/releases");
+    }
+
   } else {
     if (ui->comboOCVersions->currentText() == tr("Latest Version")) {
       QString ocUrl = "https://github.com/acidanthera/OpenCorePkg";
@@ -857,6 +907,8 @@ void SyncOCDialog::on_comboOCVersions_currentTextChanged(const QString& arg1) {
       downLink =
           "https://github.com/acidanthera/OpenCorePkg/releases/download/" +
           arg1 + "/OpenCore-" + arg1 + "-RELEASE.zip";
+
+    ui->btnGetOC->setText(tr("Get OpenCore") + "  " + arg1);
   }
 
   ocFrom = "<a href=\"" + strOCFrom + "\"" + "> " + tr(" Source ");
@@ -1007,7 +1059,10 @@ QString SyncOCDialog::getKextDevDL(QString bufferJson, QString kextName) {
         QVariantMap map = list[0].toMap();
         QVariantMap map1 = map["links"].toMap();
 
-        dl = map1["release"].toString();
+        if (!mw_one->ui->actionDEBUG->isChecked())
+          dl = map1["release"].toString();
+        else
+          dl = map1["debug"].toString();
         qDebug() << dl;
         return dl;
       }
@@ -1057,4 +1112,10 @@ void SyncOCDialog::init_InfoShow() {
   progInfo->setMinimum(0);
   if (mw_one->myDlgPreference->ui->btnDownloadKexts->isEnabled())
     progInfo->show();
+}
+
+void SyncOCDialog::on_btnGetLastOC_clicked() {
+  ui->btnGetLastOC->setEnabled(false);
+  ui->comboOCVersions->setCurrentIndex(0);
+  ui->btnGetOC->click();
 }

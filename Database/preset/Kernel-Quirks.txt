@@ -1,3 +1,6 @@
+CPU:Intel Core 13th Gen Raptor Lake (Requires Fake CPU-ID)
+Kernel:AppleXcpmCfgLock DisableLinkeditJettison PanicNoKextDump PowerTimeoutKernelPanic ProvideCurrentCpuInfo
+
 CPU:Intel Core 12th Gen Alder Lake (Requires Fake CPU-ID)
 Kernel:AppleXcpmCfgLock DisableIoMapper DisableLinkeditJettison DisableRtcChecksum PanicNoKextDump PowerTimeoutKernelPanic ProvideCurrentCpuInfo
 
@@ -99,12 +102,4 @@ Kernel:AppleCpuPmCfgLock AppleXcpmExtraMsrs DisableIoMapper DisableLinkeditJetti
 
 - `AppleXcpmCfgLock`: Not needed if you can disable CFGLock in BIOS 
 - `XhciPortLimit`: Disable for macOS 11.3 and newer – create a custom USB Port Map instead!
-
-Thanks to @5T33Z0 for providing the above content.
-
-CPU:AMD ThreadRipper (TRX40) and AMD Ryzen (X570-B450M)
-Kernel:DisableLinkeditJettison ExternalDiskIcons ProvideCurrentCpuInfo
-
-CPU:AMD ThreadRipper (TRX40) and AMD Ryzen (X370)
-Kernel:DisableLinkeditJettison ProvideCurrentCpuInfo XhciPortLimit
 

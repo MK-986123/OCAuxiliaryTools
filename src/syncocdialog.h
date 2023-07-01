@@ -57,7 +57,9 @@ class SyncOCDialog : public QDialog {
   void on_ProgBarvalueChanged(QProgressBar *m_bar);
   QString getKextHtmlInfo(QString url, bool writeFile);
   QString getKextDevDL(QString bufferJson, QString kextName);
- public slots:
+  void saveWindowsPos();
+  void resizeWindowsPos();
+  public slots:
   void on_btnStop_clicked();
   void on_listOpenCore_currentRowChanged(int currentRow);
 
@@ -87,6 +89,8 @@ class SyncOCDialog : public QDialog {
 
   void on_btnSet_clicked();
 
+  void on_btnGetLastOC_clicked();
+
  private:
   void setListWidgetColor(QString color);
   QNetworkAccessManager *mgr;
@@ -96,7 +100,9 @@ class SyncOCDialog : public QDialog {
   QCheckBox *checkBox;
 
   void init_InfoShow();
-protected:
+  QString getJsonUrl();
+
+ protected:
   void closeEvent(QCloseEvent *event);
   void resizeEvent(QResizeEvent *event);
   void keyPressEvent(QKeyEvent *event);

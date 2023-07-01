@@ -35,7 +35,7 @@ dlgPreference::dlgPreference(QWidget *parent)
   ui->tableKextUrl->setColumnWidth(1, 400);
   ui->textEdit->setHidden(true);
 
-  QString strDef = "https://ghproxy.com/https://github.com/";
+  QString strDef = "https://gh.flyinbug.top/gh/https://github.com/";
   QLocale locale;
   if (locale.language() == QLocale::Chinese) {
     ui->comboBoxNet->setCurrentText(Reg.value("Net", strDef).toString());
@@ -64,10 +64,7 @@ dlgPreference::dlgPreference(QWidget *parent)
   ui->txtHostName->setText(Reg.value("HostName", "127.0.0.1").toString());
   ui->txtPort->setText(Reg.value("Port", "38457").toString());
 
-  ui->gbox3->hide();
-  ui->rbtnAPI->hide();
   ui->rbtnWeb->hide();
-  ui->rbtnWeb->setChecked(true);
   ui->chkProxy->setChecked(false);
   ui->tabWidget->setCurrentIndex(0);
 }

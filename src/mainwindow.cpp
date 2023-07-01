@@ -307,13 +307,11 @@ void MainWindow::openFile(QString PlistFileName) {
 
     QString strEFI = fi.path().mid(0, fi.path().count() - 3);
     QFileInfo f1(strEFI + "/OC");
-    // QFileInfo f2(strEFI + "/BOOT");
     QFileInfo f3(strEFI + "/OC/Drivers");
     if (f1.isDir() && f3.isDir()) {
       ui->actionUpgrade_OC->setEnabled(true);
       ui->actionUpgrade_OC->setToolTip(tr("Upgrade OpenCore and Kexts"));
     } else {
-      // ui->actionUpgrade_OC->setEnabled(false);
       ui->actionUpgrade_OC->setToolTip(
           tr("The Upgrade OpenCore and Kexts is not available, please check "
              "the integrity of the EFI directory structure, mainly the "
@@ -621,11 +619,10 @@ void MainWindow::ParserDP(QVariantMap map) {
     }
 
     //保存子条目里面的数据，以便以后加载
-    // write_ini(ui->table_dp_add0, ui->table_dp_add, i);
     for (int n = 0; n < ui->table_dp_add->rowCount(); n++) {
-      listDPAdd.append(strAdd0 + "|" +
-                       ui->table_dp_add->item(n, 0)->text().trimmed() + "|" +
-                       ui->table_dp_add->item(n, 1)->text().trimmed() + "|" +
+      listDPAdd.append(strAdd0 + "*|*" +
+                       ui->table_dp_add->item(n, 0)->text().trimmed() + "*|*" +
+                       ui->table_dp_add->item(n, 1)->text().trimmed() + "*|*" +
                        ui->table_dp_add->item(n, 2)->text().trimmed());
     }
   }
@@ -822,6 +819,14 @@ void MainWindow::ParserMisc(QVariantMap map) {
   QVariantMap map_boot = map["Boot"].toMap();
   getValue(map_boot, ui->tabMisc1);
 
+  QObjectList listOfLineEdit = getAllLineEdit(getAllUIControls(ui->tabMisc1));
+  for (int i = 0; i < listOfLineEdit.count(); i++) {
+    QLineEdit* w = (QLineEdit*)listOfLineEdit.at(i);
+    if (w->objectName() == "editShowPicker") {
+      if (w->text() == "true" || w->text() == "false") w->setText("Always");
+    }
+  }
+
   ui->editIntConsoleAttributes->setText(
       map_boot["ConsoleAttributes"].toString());
 
@@ -940,9 +945,9 @@ void MainWindow::AddNvramAdd(QVariantMap map_add, int currentRow,
   }
 
   for (int n = 0; n < ui->table_nv_add->rowCount(); n++) {
-    listNVRAMAdd.append(strAdd0 + "|" +
-                        ui->table_nv_add->item(n, 0)->text().trimmed() + "|" +
-                        ui->table_nv_add->item(n, 1)->text().trimmed() + "|" +
+    listNVRAMAdd.append(strAdd0 + "*|*" +
+                        ui->table_nv_add->item(n, 0)->text().trimmed() + "*|*" +
+                        ui->table_nv_add->item(n, 1)->text().trimmed() + "*|*" +
                         ui->table_nv_add->item(n, 2)->text().trimmed());
   }
 }
@@ -1100,7 +1105,7 @@ void MainWindow::readLeftTable(QTableWidget* t0, QTableWidget* t) {
   t->setRowCount(0);
   for (int i = 0; i < listAdd.count(); i++) {
     QString str = listAdd.at(i);
-    QStringList list = str.split("|");
+    QStringList list = str.split("*|*");
     if (list.count() == 4) {
       if (strLeft == list.at(0)) {
         int count = t->rowCount();
@@ -1122,8 +1127,6 @@ void MainWindow::on_table_dp_add_itemChanged(QTableWidgetItem* item) {
   Q_UNUSED(item);
 
   if (writeINI) {
-    // write_ini(ui->table_dp_add0, ui->table_dp_add,
-    //          ui->table_dp_add0->currentRow());
     mymethod->writeLeftTable(ui->table_dp_add0, ui->table_dp_add);
 
     this->setWindowModified(true);
@@ -1185,10 +1188,8 @@ void MainWindow::init_value(QVariantMap map_fun, QTableWidget* table,
       }
 
       //保存子条目里面的数据，以便以后加载
-      // write_value_ini(table, subtable, i);
-
       for (int n = 0; n < subtable->rowCount(); n++) {
-        list.append(table->objectName() + "|" + str0 + "|" +
+        list.append(table->objectName() + "*|*" + str0 + "*|*" +
                     subtable->item(n, 0)->text().trimmed());
       }
     }
@@ -1284,7 +1285,7 @@ void MainWindow::readLeftTableOnlyValue(QTableWidget* t0, QTableWidget* t) {
   t->setRowCount(0);
   for (int i = 0; i < listAdd.count(); i++) {
     QString str = listAdd.at(i);
-    QStringList list = str.split("|");
+    QStringList list = str.split("*|*");
     if (list.count() == 3) {
       if (strLeft == list.at(1) && t0->objectName() == list.at(0)) {
         int count = t->rowCount();
@@ -2756,6 +2757,16 @@ void MainWindow::on_btnKernelAdd_Add_clicked() {
   FileName = fd.getOpenFileNames(this, "kext", "", "kext(*.kext);;all(*.*)");
 #endif
 
+  for (int i = 0; i < FileName.count(); i++) {
+    QString str = FileName.at(i);
+    if (!str.toLower().contains(".kext")) {
+      FileName.removeAt(i);
+      i--;
+    }
+  }
+
+  if (FileName.count() == 0) return;
+
   addKexts(FileName);
 }
 
@@ -4079,6 +4090,8 @@ void MainWindow::closeEvent(QCloseEvent* event) {
   }
 
   mymethod->cancelKextUpdate();
+  QString tempDir = QDir::homePath() + "/tempocat/";
+  deleteDirfile(tempDir);
 }
 
 void MainWindow::on_table_uefi_ReservedMemory_currentCellChanged(
@@ -4923,6 +4936,7 @@ void MainWindow::init_ToolBarIcon() {
 }
 
 void MainWindow::init_FileMenu() {
+  ui->actionNew_Key_Field->setVisible(false);
   // New
   if (mac || osx1012) ui->actionNewWindow->setIconVisibleInMenu(false);
 
@@ -4991,15 +5005,15 @@ void MainWindow::init_FileMenu() {
   ui->actionSave_As->setShortcut(tr("ctrl+shift+s"));
 
   // Preferences
-  ui->actionPreferences->setMenuRole(QAction::PreferencesRole);
+  // ui->actionPreferences->setMenuRole(QAction::PreferencesRole);
 
   // Quit
   ui->actionQuit->setMenuRole(QAction::QuitRole);
 }
 
 void MainWindow::init_EditMenu() {
-  ui->actionPlist_editor->setVisible(true);
-  ui->actionDSDT_SSDT_editor->setVisible(true);
+  ui->actionPlist_editor->setVisible(false);
+  ui->actionDSDT_SSDT_editor->setVisible(false);
 
   // Edit
   ui->actionInitDatabaseLinux->setVisible(false);
@@ -8862,6 +8876,9 @@ void MainWindow::on_actionQuit_triggered() { this->close(); }
 
 void MainWindow::on_actionUpgrade_OC_triggered() {
   dlgSyncOC->init_Sync_OC_Table();
+  dlgSyncOC->resizeWindowsPos();
+
+  myDlgPreference->ui->rbtnAPI->click();
 }
 
 void MainWindow::initColorValue() {
@@ -9085,19 +9102,26 @@ void MainWindow::on_myeditPassInput_returnPressed() {
 }
 
 void MainWindow::on_actionDatabase_triggered() {
+  QString url =
+      "https://github.com/5T33Z0/OC-Little-Translated/tree/main/F_Desktop_EFIs/"
+      "Config_Templates";
+  QString txt = "<a href=\"" + url + "\"" + "> " +
+                tr(" Intel CPU configuration template ");
+  QMessageBox box;
+  box.setText(txt);
+  box.exec();
+
+  return;
+
   myDatabase->setModal(true);
   myDatabase->show();
 
   QFileInfo appInfo(qApp->applicationDirPath());
 
   QString dirpath = appInfo.filePath() + "/Database/BaseConfigs/";
-  //设置要遍历的目录
   QDir dir(dirpath);
-  //设置文件过滤器
   QStringList nameFilters;
-  //设置文件过滤格式
   nameFilters << "*.plist";
-  //将过滤后的文件名称存入到files列表中
   QStringList filesTemp =
       dir.entryList(nameFilters, QDir::Files | QDir::Readable, QDir::Name);
   QStringList files;
@@ -9540,7 +9564,7 @@ void MainWindow::on_actionOpen_database_directory_triggered() {
   if (blDEV)
     dir = "file:" + userDataBaseDir;
   else
-    dir = "file:" + dataBaseDir;
+    dir = "file:" + userDataBaseDir;
   QDesktopServices::openUrl(QUrl(dir, QUrl::TolerantMode));
 }
 
@@ -10037,6 +10061,7 @@ void MainWindow::on_actionDEBUG_triggered() {
 
 void MainWindow::on_actionInitDatabaseLinux_triggered() {
   // Init Linux Database
+
   if (linuxOS) {
     copyDirectoryFiles(strAppExePath + "/Database/",
                        QDir::homePath() + "/.ocat/Database/", true);

@@ -146,7 +146,11 @@ QString Method::getHTMLSource(QString URLSTR, bool writeFile) {
   QString code = reply->readAll();
   if (code == "") {
     mw_one->dlgSyncOC->on_btnStop_clicked();
-    QMessageBox::critical(this, "", tr("Network or URL error!"));
+    QMessageBox::critical(
+        this, "",
+        tr("Network or URL error!") + "\n\n" +
+            tr("Or if the GitHub API has reached the number of accesses per "
+               "hour (typically 60 per hour), please try again later."));
 
     return "";
   }
@@ -443,7 +447,11 @@ void Method::startDownload(QString strUrl) {
       myfile->open(QIODevice::WriteOnly | QIODevice::Truncate);  //创建文件
   if (!ret) {
     mw_one->dlgSyncOC->ui->btnStop->click();
-    QMessageBox::warning(this, "warning", "File creation failed!\n" + file);
+    QMessageBox::warning(this, tr("Warning"),
+                         tr("File creation failed!") + "\n" + file + "\n\n" +
+                             tr("Or if you are in a region that does not have "
+                                "direct access to GitHub, please select the "
+                                "mirror server in Preferences and try again."));
     return;
   }
   progBar->setValue(0);
@@ -521,6 +529,7 @@ void Method::doProcessFinished() {
     delete progBar;
     mw_one->dlgSyncOC->isCheckOC = false;
     mw_one->dlgSyncOC->ui->btnGetOC->setEnabled(true);
+    mw_one->dlgSyncOC->ui->btnGetLastOC->setEnabled(true);
   }
   isReplyDL = false;
 }
@@ -764,7 +773,11 @@ void Method::parse_UpdateJSON(QString str) {
 
   if (err_rpt.error != QJsonParseError::NoError) {
     mw_one->dlgSyncOC->on_btnStop_clicked();
-    QMessageBox::critical(this, "", tr("Network or URL error!"));
+    QMessageBox::critical(
+        this, "",
+        tr("Network or URL error!") + "\n\n" +
+            tr("Or if the GitHub API has reached the number of accesses per "
+               "hour (typically 60 per hour), please try again later."));
 
     return;
   }
@@ -812,7 +825,11 @@ void Method::parse_UpdateJSON(QString str) {
   qDebug() << strDLInfoList.at(0) << strDLInfoList.at(1);
   if (strDLUrl == "") {
     mw_one->dlgSyncOC->on_btnStop_clicked();
-    QMessageBox::critical(this, "", tr("Network or URL error!"));
+    QMessageBox::critical(
+        this, "",
+        tr("Network or URL error!") + "\n\n" +
+            tr("Or if the GitHub API has reached the number of accesses per "
+               "hour (typically 60 per hour), please try again later."));
 
     return;
   }
@@ -1735,7 +1752,7 @@ void Method::writeLeftTable(QTableWidget* t0, QTableWidget* t) {
   QString strLeft = t0->currentItem()->text().trimmed();
   for (int i = 0; i < listAdd.count(); i++) {
     QString str = listAdd.at(i);
-    QStringList list = str.split("|");
+    QStringList list = str.split("*|*");
     if (list.count() == 4) {
       if (strLeft == list.at(0)) {
         listAdd.removeAt(i);
@@ -1745,8 +1762,8 @@ void Method::writeLeftTable(QTableWidget* t0, QTableWidget* t) {
   }
 
   for (int i = 0; i < t->rowCount(); i++) {
-    listAdd.append(strLeft + "|" + t->item(i, 0)->text().trimmed() + "|" +
-                   t->item(i, 1)->text().trimmed() + "|" +
+    listAdd.append(strLeft + "*|*" + t->item(i, 0)->text().trimmed() + "*|*" +
+                   t->item(i, 1)->text().trimmed() + "*|*" +
                    t->item(i, 2)->text().trimmed());
   }
 
@@ -1766,7 +1783,7 @@ void Method::writeLeftTableOnlyValue(QTableWidget* t0, QTableWidget* t) {
   QString strLeft = t0->currentItem()->text().trimmed();
   for (int i = 0; i < listAdd.count(); i++) {
     QString str = listAdd.at(i);
-    QStringList list = str.split("|");
+    QStringList list = str.split("*|*");
     if (list.count() == 3) {
       if (strLeft == list.at(1) && t0->objectName() == list.at(0)) {
         listAdd.removeAt(i);
@@ -1776,7 +1793,7 @@ void Method::writeLeftTableOnlyValue(QTableWidget* t0, QTableWidget* t) {
   }
 
   for (int i = 0; i < t->rowCount(); i++) {
-    listAdd.append(t0->objectName() + "|" + strLeft + "|" +
+    listAdd.append(t0->objectName() + "*|*" + strLeft + "*|*" +
                    t->item(i, 0)->text().trimmed());
   }
 
@@ -2527,7 +2544,6 @@ void Method::set_TableData(QTableWidget* t, QVariantList mapList) {
             } else if (strCol == "LoadEarly") {
               mw_one->init_enabled_data(t, i + rowTotal, j, "false");
             } else
-
               mw_one->init_enabled_data(t, i + rowTotal, j, "false");
           }
         } else if (isData(strCol)) {

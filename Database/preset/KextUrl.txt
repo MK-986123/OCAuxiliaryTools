@@ -35,8 +35,16 @@ SMCAMDProcessor.kext | https://github.com/trulyspinach/SMCAMDProcessor
 USBInjectAll.kext | https://github.com/daliansky/OS-X-USB-Inject-All
 IntelBluetoothFirmware.kext | https://github.com/OpenIntelWireless/IntelBluetoothFirmware
 IntelBluetoothInjector.kext | https://github.com/OpenIntelWireless/IntelBluetoothFirmware
+IntelBTPatcher.kext | https://github.com/OpenIntelWireless/IntelBluetoothFirmware
 AirportItlwm.kext | https://github.com/OpenIntelWireless/itlwm
 HoRNDIS9.2.kext | https://github.com/w19996/HoRNDIS
 EFICheckDisabler.kext | https://github.com/w19996/EFICheckDisabler
-USBPorts-XiaoMiRuby.kext | https://github.com/w19996/USBPorts-XiaoMiRuby
+GenericCardReaderFriend.kext | https://github.com/0xFireWolf/GenericCardReaderFriend
 BlueToolFixup.kext | https://github.com/acidanthera/BrcmPatchRAM
+CryptexFixup.kext | https://github.com/acidanthera/CryptexFixup
+EmeraldSDHC.kext | https://github.com/acidanthera/EmeraldSDHC
+CpuTopologyRebuild.kext | https://github.com/b00t0x/CpuTopologyRebuild
+VoodooRMI.kext | https://github.com/VoodooSMBus/VoodooRMI
+VoodooSMBus.kext | https://github.com/VoodooSMBus/VoodooRMI
+YogaSMC.kext | https://github.com/zhen-zen/YogaSMC
+
